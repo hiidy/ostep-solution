@@ -20,3 +20,17 @@
 5. `python ./x86.py -p looping-race-nolock.s -t 2 -a bx=3 -M 2000 -c` 의 실행 결과와 3번씩 반복되는 이유는?
     - loop를 담당하는 bx에 3이 저장되어 있기 때문에 loop를 끝날 때까지 각 스레드가 3번씩 반복된다.
     - 따라서 value의 최종 값은 6이 된다.
+
+6. `python ./x86.py -p looping-race-nolock.s -t 2 -M 2000 -i 4 -r -s 1 -c` race condition이 발생했는지?
+   - seed에 따라서 race condition이 발생할 수도 있고 발생하지 않을 수도 있다.
+   - 발생하게 된다면 thread0이 계산을 마치기 전에 thread 1이 계산이 끝났고 thread0은 그전에 불러온 레지스터의 값으로 계산을 하기 떄문이다.
+  
+7. `python ./x86.py -p looping-race-nolock.s -a bx=1 -t 2 -M 2000 -i 3` interrupt 주기가 몇 일 때 올바른 결과가 나오는가?
+   - interrupt 주기가 3일 때 올바른 결과가 나온다.
+   - 왜냐하면 2000번지에 옮겨야지 결과가 올바르게 나오기 때문이다.
+
+8. 7에서 bx=100일 때  interval이 어떻게 되어야지 올바른 값이 나오는가?
+   - interval이 3의 배수일 때
+
+9. thread0은 2000번지를 1로 만들고 thread1은 2000번이 1이 될때까지 무한 루프
+10. thread0은 계속 루프에 빠진다.
