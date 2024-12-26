@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/fcntl.h>
+#include <sys/time.h>
 #include <sys/wait.h>
 #include <unistd.h>
 #define ERROR "An error has occurred\n"
@@ -16,6 +18,7 @@ char *line = NULL;
 typedef struct {
     char **args;
     int arg_count;
+    char *output_file;
 } Command;
 
 typedef struct {
@@ -52,14 +55,34 @@ int search_path(char *result, Command *command, PathList *pl) {
     return -1;
 }
 
-// 명령어 파싱
 Command *parse_command(char *line) {
     Command *cmd = malloc(sizeof(Command));
     cmd->args = malloc(sizeof(char *) * MAX_ARGS);
     cmd->arg_count = 0;
 
-    char *token;
     char *tmp = line;
+
+    // redirection 개수 확인
+    int redirect_cnt = 0;
+    while (*tmp != '\0') {
+        if (*tmp == '<') {
+            redirect_cnt++;
+        }
+        tmp++;
+    }
+
+    if (redirect_cnt > 1) {
+        print_error();
+        free_command(cmd);
+        exit(EXIT_FAILURE);
+    }
+
+    char *command_part = strsep(&line, ">");
+    char *redirect_part = line;
+
+    char *token;
+    tmp = command_part;
+
     while ((token = strsep(&tmp, " \t")) != NULL) {
         if (*token != '\0') {
             cmd->args[cmd->arg_count] = strdup(token);
@@ -67,8 +90,25 @@ Command *parse_command(char *line) {
         }
     }
 
-    cmd->args[cmd->arg_count] = NULL;
+    if (redirect_part != NULL) {
+        if (*redirect_part == '\0' || *command_part == '\0') {
+            print_error();
+            return NULL;
+        }
+        tmp = redirect_part;
+        while ((token = strsep(&tmp, " \t")) != NULL) {
+            if (*token != '\0') {
+                if (cmd->output_file != NULL) {
+                    print_error();
+                    free_command(cmd);
+                    return NULL;
+                }
+                cmd->output_file = strdup(token);
+            }
+        }
+    }
 
+    cmd->args[cmd->arg_count] = NULL;
     return cmd;
 }
 
@@ -122,7 +162,6 @@ int handle_builtin_command(Command *cmd, PathList *pl) {
     return 0;
 }
 
-// 외부 명령어 실행
 int execute_external_command(Command *cmd, PathList *pl) {
     char path[BUFF_SIZE];
 
@@ -135,6 +174,22 @@ int execute_external_command(Command *cmd, PathList *pl) {
         }
 
         if (pid == 0) {  // 자식 프로세스
+            if (cmd->output_file != NULL) {
+                int fd = open(cmd->output_file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+                if (fd == -1) {
+                    print_error();
+                    exit(EXIT_FAILURE);
+                }
+
+                // 표준 출력을 파일로 리다이렉션
+                if (dup2(fd, STDOUT_FILENO) == -1) {
+                    print_error();
+                    close(fd);
+                    exit(EXIT_FAILURE);
+                }
+                close(fd);  // 복제 후 원본 fd는 닫기
+            }
+
             if (execv(path, cmd->args) == -1) {
                 print_error();
                 exit(EXIT_FAILURE);
@@ -160,7 +215,6 @@ PathList *create_paths() {
     return pl;
 }
 
-// Command 구조체 메모리 해제
 void free_command(Command *cmd) {
     if (cmd == NULL)
         return;
@@ -172,8 +226,9 @@ void free_command(Command *cmd) {
     free(cmd);
 }
 
+
+
 int main(int argc, char *argv[]) {
-    char *paths[BUFF_SIZE] = {"/bin", NULL};
     PathList *pl = create_paths();
     int mode = 0;
     fp = stdin;
@@ -181,7 +236,10 @@ int main(int argc, char *argv[]) {
         mode = INTERACTIVE_MODE;
     } else {
         mode = BATCH_MODE;
-        fp = fopen(argv[1], "r");
+        if (argc > 2 || (fp = fopen(argv[1], "r")) == NULL) {
+            print_error();
+            exit(EXIT_FAILURE);
+        }
     }
 
     size_t len = 0;
@@ -203,9 +261,13 @@ int main(int argc, char *argv[]) {
             line[read - 1] = '\0';
         }
 
+
         Command *cmd = parse_command(line);
-        execute_command(cmd, pl);
-        free_command(cmd);
+        if (cmd != NULL) {
+            execute_command(cmd, pl);
+            free_command(cmd);
+        }
+
 
     }
 }
