@@ -24,6 +24,8 @@
 6. `python ./x86.py -p looping-race-nolock.s -t 2 -M 2000 -i 4 -r -s 1 -c` race condition이 발생했는지?
    - seed에 따라서 race condition이 발생할 수도 있고 발생하지 않을 수도 있다.
    - 발생하게 된다면 thread0이 계산을 마치기 전에 thread 1이 계산이 끝났고 thread0은 그전에 불러온 레지스터의 값으로 계산을 하기 떄문이다.
+   - 따라서 인터럽트의 타이밍이 중요하고 메모리 연산 전후에 발생하면 문제가 생기지 않는다.
+   - 메모리 읽기 쓰기 사이에 인터럽트가 발생하면 문제가 발생함
   
 7. `python ./x86.py -p looping-race-nolock.s -a bx=1 -t 2 -M 2000 -i 3` interrupt 주기가 몇 일 때 올바른 결과가 나오는가?
    - interrupt 주기가 3일 때 올바른 결과가 나온다.
