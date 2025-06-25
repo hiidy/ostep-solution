@@ -88,6 +88,7 @@ allocproc(void)
 found:
   p->state = EMBRYO;
   p->pid = nextpid++;
+  p->tickets = 1; // 초기 티켓 수를 1로 설정
 
   release(&ptable.lock);
 
@@ -211,6 +212,7 @@ fork(void)
   safestrcpy(np->name, curproc->name, sizeof(curproc->name));
 
   pid = np->pid;
+  np->tickets = curproc->tickets; // 부모의 티켓 수를 자식에게 복사
 
   acquire(&ptable.lock);
 
@@ -531,4 +533,21 @@ procdump(void)
     }
     cprintf("\n");
   }
+}
+
+int
+settickets(void)
+{
+  int n;
+
+  if (argint(0, &n) < 0)
+    return -1;
+
+  if (n < 1)
+    return -1;
+
+  myproc()->tickets = n;
+  return 0;
+
+
 }
