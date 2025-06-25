@@ -6,6 +6,7 @@
 #include "memlayout.h"
 #include "mmu.h"
 #include "proc.h"
+#include "pstat.h"
 
 int
 sys_fork(void)
@@ -99,4 +100,11 @@ int sys_settickets(void) {
   myproc()->tickets = n;
 
   return 0;
+}
+
+int sys_getpinfo(void) {
+  struct pstat *ps;
+  if (argptr(0, (void*)&ps, sizeof(*ps)) < 0)
+    return -1;
+  return getpinfo(ps);
 }

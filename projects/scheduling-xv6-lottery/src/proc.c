@@ -6,6 +6,7 @@
 #include "x86.h"
 #include "proc.h"
 #include "spinlock.h"
+#include "pstat.h"
 
 struct {
   struct spinlock lock;
@@ -536,18 +537,14 @@ procdump(void)
 }
 
 int
-settickets(void)
-{
-  int n;
-
-  if (argint(0, &n) < 0)
-    return -1;
-
-  if (n < 1)
-    return -1;
-
-  myproc()->tickets = n;
+getpinfo(struct pstat *ps) {
+  
+  for (int i = 0; i < NPROC; i++) {
+    struct proc *p = &ptable.proc[i];
+    ps->inuse[i] = (p->state != UNUSED);
+    ps->tickets[i] = p->tickets;
+    ps->pid[i] = p->pid;
+    ps->ticks[i] = p->ticks;
+  }
   return 0;
-
-
 }
