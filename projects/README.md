@@ -1,9 +1,9 @@
 ## ostep projects
 
--[x] Unix Utilities(cat, grep, zip, unzip)
-- [ ] processes-shell
-- [ ] initial-xv6
-- [ ] scheduling-xv6-lottery
+- [x] Unix Utilities(cat, grep, zip, unzip)
+- [x] processes-shell
+- [x] initial-xv6
+- [x] scheduling-xv6-lottery
 - [ ] vm-xv6-intro
 - [ ] concurrency-xv6-threads
 - [ ] concurrency-mapreduce
