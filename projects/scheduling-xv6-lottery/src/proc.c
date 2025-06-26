@@ -149,9 +149,8 @@ userinit(void)
   // writes to be visible, and the lock is also needed
   // because the assignment might not be atomic.
   acquire(&ptable.lock);
-
   p->state = RUNNABLE;
-
+  cprintf("userinit pid: %d, state: %d, tickets: %d\n", p->pid, p->state, p->tickets);
   release(&ptable.lock);
 }
 
@@ -335,23 +334,38 @@ scheduler(void)
 
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
+
+    // 전체 티켓 개수
+    int totaltickets = 0;
+    int counter = 0;
+    for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+      if (p->state == RUNNABLE) {
+        totaltickets += p-> tickets;
+        
+      }
+    }
+
+    int winner = getrandom(totaltickets);
+
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
       if(p->state != RUNNABLE)
         continue;
 
-      // Switch to chosen process.  It is the process's job
-      // to release ptable.lock and then reacquire it
-      // before jumping back to us.
-      c->proc = p;
-      switchuvm(p);
-      p->state = RUNNING;
+      counter += p->tickets;
+      if (counter > winner) {
+        c->proc = p;
+        switchuvm(p);
+        p->state = RUNNING;
 
-      swtch(&(c->scheduler), p->context);
-      switchkvm();
+        swtch(&(c->scheduler), p->context);
+        switchkvm();
+        p->ticks++; 
 
-      // Process is done running for now.
-      // It should have changed its p->state before coming back.
-      c->proc = 0;
+        // Process is done running for now.
+        // It should have changed its p->state before coming back.
+        c->proc = 0;
+        break;
+      }
     }
     release(&ptable.lock);
 
@@ -537,6 +551,22 @@ procdump(void)
 }
 
 int
+settickets(int tickets) {
+  struct proc *p = myproc();
+  
+  if (tickets <= 0) {
+    return -1; // 티켓 수는 양수여야 합니다.
+  }
+
+  acquire(&ptable.lock);
+  p->tickets = tickets;
+  cprintf("Process %d tickets set to %d\n", p->pid, p->tickets);
+  release(&ptable.lock);
+
+  return 0;
+}
+
+int
 getpinfo(struct pstat *ps) {
   
   for (int i = 0; i < NPROC; i++) {
@@ -547,4 +577,30 @@ getpinfo(struct pstat *ps) {
     ps->ticks[i] = p->ticks;
   }
   return 0;
+}
+
+static unsigned int rand_seed = 1;
+
+long int
+random()
+{
+  rand_seed = (1103515245U * rand_seed + 12345U) & 0x7fffffff;
+  return rand_seed;
+}
+
+int
+getrandom(int max) {
+  if (max <= 0) return 0;
+
+  long num_bins = ( long)max + 1;
+  long num_rand = 0x7fffffffL;
+  long bin_size = num_rand / num_bins;
+  long defect = num_rand % num_bins;
+
+  long x;
+  do {
+      x = random();
+  } while (x >= num_rand - defect); 
+
+  return x / bin_size;
 }

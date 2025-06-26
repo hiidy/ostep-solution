@@ -92,14 +92,11 @@ sys_uptime(void)
 }
 
 int sys_settickets(void) {
-  int n;
-
-  if (argint(0, &n) < 0 || n < 1)
+  
+  int tickets;
+  if (argint(0, &tickets) < 0)
     return -1;
-
-  myproc()->tickets = n;
-
-  return 0;
+  return settickets(tickets);
 }
 
 int sys_getpinfo(void) {

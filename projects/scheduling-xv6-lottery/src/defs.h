@@ -123,6 +123,7 @@ void            wakeup(void*);
 void            yield(void);
 int             settickets(int);
 int             getpinfo(struct pstat*);
+int             getrandom(int);
 
 // swtch.S
 void            swtch(struct context**, struct context*);
