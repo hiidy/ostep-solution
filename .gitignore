@@ -209,3 +209,20 @@ Temporary Items
 
 **/tests/**
 **/tests-out/**
+
+# Temp files
+*.log
+*.swp
+*~
+
+# Generated documentation or scripts
+runoff
+runoff1
+runoff.list
+runoff.spec
+pr.pl
+toc.ftr
+toc.hdr
+show1
+sleep1.p
+sign.pl
