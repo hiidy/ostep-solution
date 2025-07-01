@@ -7,10 +7,11 @@ My solutions for Operating Systems: Three Easy Pieces book.
 ### C/Linux Projects
 - [Unix Utilities (cat, grep, zip/unzip)](./projects/initial-utilities)
 - [Shell](./projects/processes-shell)
-- [Scheduling (xv6 Lottery)](./projects/scheduling-xv6-lottery)
 
 ### Kernel Hacking Projects (xv6)
-- [xv6 - initial](./projects/initial-xv6)
+- [initial](./projects/initial-xv6)
+- [scheduling lottery](./projects/scheduling-xv6-lottery)
+- [vm](./projects/vm-xv6-intro)
 
 ## ostep-homework
 
