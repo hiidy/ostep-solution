@@ -315,7 +315,8 @@ copyuvm(pde_t *pgdir, uint sz)
     if((mem = kalloc()) == 0)
       goto bad;
     memmove(mem, (char*)pa, PGSIZE);
-    if(mappages(d, (void*)i, PGSIZE, PADDR(mem), PTE_W|PTE_U) < 0)
+    int flags = (*pte & (PTE_W | PTE_U | PTE_PCD));
+    if(mappages(d, (void*)i, PGSIZE, PADDR(mem), flags) < 0)
       goto bad;
   }
   return d;
@@ -362,5 +363,38 @@ copyout(pde_t *pgdir, uint va, void *p, uint len)
     buf += n;
     va = va0 + PGSIZE;
   }
+  return 0;
+}
+
+int
+mprotect(void *addr, int len) {
+
+  pde_t *pgdir;
+  pte_t *pte;
+  pgdir = proc->pgdir;
+  if ((pte = walkpgdir(pgdir, addr, 0)) == 0) {
+    return -1;
+  }
+  if((*pte & PTE_P) == 0) {
+    return -1;
+  }
+  *pte = *pte & ~PTE_W;
+  lcr3(PADDR(pgdir));  // reload page table register
+  return 0;
+}
+
+int
+munprotect(void *addr, int len) {
+  pde_t *pgdir;
+  pte_t *pte;
+  pgdir = proc->pgdir;
+  if ((pte = walkpgdir(pgdir, addr, 0)) == 0) {
+    return -1;
+  }
+  if((*pte & PTE_P) == 0) {
+    return -1;
+  }
+  *pte = *pte | PTE_W;
+  lcr3(PADDR(pgdir));  // reload page table register
   return 0;
 }
