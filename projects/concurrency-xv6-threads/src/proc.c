@@ -532,3 +532,53 @@ procdump(void)
     cprintf("\n");
   }
 }
+
+int clone(void(*fcn)(void *, void *), void *arg1, void *arg2, void *stack)
+{
+  int i, pid;
+  struct proc *curproc = myproc();
+  struct proc *np;
+
+  if((np = allocproc()) == 0){
+    return -1;
+  }
+
+  // pgdir
+  np->pgdir = curproc->pgdir;
+
+  np->sz = curproc->sz;
+  np->parent = curproc;
+  *np->tf = *curproc->tf;
+
+  np->tf->eip = (uint) fcn;
+  uint *sp = stack + PGSIZE;
+  sp--;
+  *sp = (uint)arg2;
+  sp--;
+  *sp = (uint)arg1;
+  sp--;
+  *sp = 0xFFFFFFFF;
+  np->tf->esp = (uint)sp;
+
+  // Clear %eax so that fork returns 0 in the child.
+  np->tf->eax = 0;
+
+  for (i = 0; i < NOFILE; i++) {
+    if(curproc->ofile[i]) {
+      np->ofile[i] = filedup(curproc->ofile[i]);
+    }
+  }
+  np->cwd = idup(curproc->cwd);
+
+  safestrcpy(np->name, curproc->name, sizeof(curproc->name));
+
+  pid = np->pid;
+
+  acquire(&ptable.lock);
+
+  np->state = RUNNABLE;
+
+  release(&ptable.lock);
+
+  return pid;
+}
