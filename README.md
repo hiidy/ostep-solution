@@ -12,6 +12,7 @@ My solutions for Operating Systems: Three Easy Pieces book.
 - [initial](./projects/initial-xv6)
 - [scheduling lottery](./projects/scheduling-xv6-lottery)
 - [vm](./projects/vm-xv6-intro)
+- [concurrency](./projects/concurrency-xv6-threads)
 
 ## ostep-homework
 

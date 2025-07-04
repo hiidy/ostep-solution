@@ -5,7 +5,7 @@
 - [x] initial-xv6
 - [x] scheduling-xv6-lottery
 - [x] vm-xv6-intro
-- [ ] concurrency-xv6-threads
+- [x] concurrency-xv6-threads
 - [ ] concurrency-mapreduce
 - [ ] concurrency-webserver
 - [ ] filesystems-checker
