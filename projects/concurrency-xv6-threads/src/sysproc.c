@@ -104,5 +104,9 @@ sys_clone(void)
 
 int
 sys_join(void) {
-  return -1;
+  void **user_stack_ptr;
+  if (argptr(0, (char **) &user_stack_ptr, sizeof(void *)) < 0) {
+    return -1;
+  }
+  return join(user_stack_ptr);
 }

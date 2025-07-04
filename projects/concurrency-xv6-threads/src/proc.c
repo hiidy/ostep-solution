@@ -551,7 +551,10 @@ int clone(void(*fcn)(void *, void *), void *arg1, void *arg2, void *stack)
   *np->tf = *curproc->tf;
 
   np->tf->eip = (uint) fcn;
+  np->ustack = stack;
+  np->is_thread = 1;
   uint *sp = stack + PGSIZE;
+  cprintf("[clone] sp initial: %p\n", sp);
   sp--;
   *sp = (uint)arg2;
   sp--;
@@ -584,7 +587,47 @@ int clone(void(*fcn)(void *, void *), void *arg1, void *arg2, void *stack)
 }
 
 int join(void **stack) {
-  return -1;
+  struct proc *p;
+  int havekids, pid;
+  struct proc *curproc = myproc();
+  
+  acquire(&ptable.lock);
+  for(;;){
+    // 스레드 찾기
+    havekids = 0;
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+      if(p->parent != curproc)
+        continue;
+      // 스레드인지 확인
+      if (p->is_thread == 0) {
+        continue;
+      }
+      havekids = 1;
+      if(p->state == ZOMBIE){
+        // Found one.
+        pid = p->pid;
+        *stack = p->ustack;
+        kfree(p->kstack);
+        p->kstack = 0;
+        p->pid = 0;
+        p->parent = 0;
+        p->name[0] = 0;
+        p->killed = 0;
+        p->state = UNUSED;
+        p->is_thread = 0;
+        release(&ptable.lock);
+        return pid;
+      }
+    }
 
+    // No point waiting if we don't have any children.
+    if(!havekids || curproc->killed){
+      release(&ptable.lock);
+      return -1;
+    }
+
+    // Wait for children to exit.  (See wakeup1 call in proc_exit.)
+    sleep(curproc, &ptable.lock);  //DOC: wait-sleep
+  }
 
 }
