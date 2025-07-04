@@ -554,7 +554,6 @@ int clone(void(*fcn)(void *, void *), void *arg1, void *arg2, void *stack)
   np->ustack = stack;
   np->is_thread = 1;
   uint *sp = stack + PGSIZE;
-  cprintf("[clone] sp initial: %p\n", sp);
   sp--;
   *sp = (uint)arg2;
   sp--;
