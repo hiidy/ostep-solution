@@ -101,3 +101,8 @@ sys_clone(void)
 }
   return clone((void (*)(void *, void *))fcn, arg1, arg2, stack);
 }
+
+int
+sys_join(void) {
+  return -1;
+}
