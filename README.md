@@ -1,6 +1,17 @@
 ## ostep homework and project solutions
 
-My solutions for Operating Systems: Three Easy Pieces book.
+University of Wisconsin의 CS537수업을 듣고 진행한 ostep 솔루션과 xv6 프로젝트입니다
+
+
+아래는 xv6 프로젝트를 진행하며 겪었던 문제와 해결 과정을 상세히 기록한 글입니다. 커널 개발 과정의 시행착오와 고민들을 담았습니다.
+
+* **블로그 링크:** [xv6: projects](https://velog.io/@hiidy/series/xv6)
+
+진행 과정에서 참고한 주요 자료들은 다음과 같습니다.
+
+* **커리큘럼:** [University of Wisconsin CS 537 Course Curriculum](https://github.com/ossu/computer-science/blob/master/coursepages/ostep/README.md)
+* **강의 영상:** [CS 537: OS | University of Wisconsin-Madison (YouTube Playlist)](https://pages.cs.wisc.edu/~remzi/Classes/537/Spring2018/Discussion/videos.html)
+
 
 ## ostep-project
 
